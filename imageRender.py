@@ -2,6 +2,8 @@
 image rendering program
 takes a sequence of parametric curve and prism data and renders a bitmap image
 """
+import sys
+sys.path.append("C:\\Users\\hates\\Desktop\\modules")
 import parametric
 import bitmap
 import jpg
@@ -19,21 +21,17 @@ where the auxiliary data is stored
 7 = single warp
 8 = double warp
 9 = quad warp
+10 = bSpline curve
 """
-aux = [
-    [1,[25,78],[[54,92]],[97,74]],
-    [1,[23,18],[[47,7]],[91,16]],
-    [1,[97,74],[[78,57]],[91,16]],
-    [1,[25,78],[[39,50]],[23,18]]
-    ]
-for i in range(11):
-    aux.append([1,[i*10,0],[],[i*10,100]])
-    aux.append([1,[0,i*10],[],[100,i*10]])
+aux = []
 
 auxCurves = []
 for i in range(len(aux)):
     if aux[i][0] == 1:
-        auxCurves.append(parametric.bez(aux[i][1],aux[i][2],aux[i][3]))
+        sub = []
+        for i in range(len(aux[i][2])):
+            sub.append(parametric.orderedPair(aux[i][2][0],aux[i][2][1]))
+        auxCurves.append(parametric.bez(parametric.orderedPair(aux[i][1][0],aux[i][1][1]),sub,parametric.orderedPair(aux[i][3][0],aux[i][3][1])))
     elif aux[i][0] == 2:
         auxCurves.append(parametric.spiral(aux[i][1],aux[i][2],aux[i][3],aux[i][4],aux[i][5],aux[i][6]))
     elif aux[i][0] == 3:
@@ -76,6 +74,13 @@ for i in range(len(aux)):
         sub2 = parametric.quadWarp(auxCurves[aux[i][1]],auxCurves[aux[i][2]],auxCurves[aux[i][3]],auxCurves[aux[i][4]],sub,parametric.scopeDimensions(aux[i][6][0],aux[i][6][1]),parametric.orderedPair(aux[i][7][0],aux[i][7][1]))
         for j in range(len(sub2)):
             auxCurves.append(sub2[j])
+    elif aux[i][0] == 10:
+        sub = []
+        for j in range(len(aux[i][2])):
+            sub.append(parametric.orderedPair(aux[i][2][j][0],aux[i][2][j][1]))
+        sub2 = parametric.bSpline(parametric.orderedPair(aux[i][1][0],aux[i][1][1]),sub,parametric.orderedPair(aux[i][3][0],aux[i][3][1]),aux[i][4][0],aux[i][4][1])
+        for j in range(len(sub2)):
+            curves.append(sub2[j])
 
 """
 where the curve data is stored
@@ -84,13 +89,8 @@ sub = []
 for i in range(4,len(aux)):
     sub.append(i)
 lines = [
-    [9,0,1,2,3,sub,[100,100],[0,0],1,[191,191,191]],
-    [1,[25,78],[[54,92]],[97,74],1,[0,0,0]],
-    [1,[23,18],[[47,7]],[91,16],1,[0,0,0]],
-    [1,[97,74],[[78,57]],[91,16],1,[0,0,0]],
-    [1,[25,78],[[39,50]],[23,18],1,[0,0,0]]
+    [10,[60,30],[[120,30],[150,90],[90,120]],[30,90],[3,1],1,[0,0,0]]
     ]
-
 # where the prism data is stored
 shapes = [
     #[[0,3,2,1],[128,128,128]]
@@ -104,7 +104,10 @@ bgCol = [255,255,255]
 curves = []
 for i in range(len(lines)):
     if lines[i][0] == 1:
-        curves.append(parametric.bez(lines[i][1],lines[i][2],lines[i][3]))
+        sub = []
+        for j in range(len(lines[i][2])):
+            sub.append(parametric.orderedPair(lines[i][2][j][0],lines[i][2][j][1]))
+        curves.append(parametric.bez(parametric.orderedPair(lines[i][1][0],lines[i][1][1]),sub,parametric.orderedPair(lines[i][3][0],lines[i][3][1])))
         curves[-1].th = lines[i][-2]
         curves[-1].col = lines[i][-1]
     elif lines[i][0] == 2:
@@ -161,6 +164,15 @@ for i in range(len(lines)):
         for j in range(len(lines[i][5])):
             sub.append(auxCurves[lines[i][5][j]])
         sub2 = parametric.quadWarp(auxCurves[lines[i][1]],auxCurves[lines[i][2]],auxCurves[lines[i][3]],auxCurves[lines[i][4]],sub,parametric.scopeDimensions(lines[i][6][0],lines[i][6][1]),parametric.orderedPair(lines[i][7][0],lines[i][7][1]))
+        for j in range(len(sub2)):
+            curves.append(sub2[j])
+            curves[-1].th = lines[i][-2]
+            curves[-1].col = lines[i][-1]
+    elif lines[i][0] == 10:
+        sub = []
+        for j in range(len(lines[i][2])):
+            sub.append(parametric.orderedPair(lines[i][2][j][0],lines[i][2][j][1]))
+        sub2 = parametric.bSpline(parametric.orderedPair(lines[i][1][0],lines[i][1][1]),sub,parametric.orderedPair(lines[i][3][0],lines[i][3][1]),lines[i][4][0],lines[i][4][1])
         for j in range(len(sub2)):
             curves.append(sub2[j])
             curves[-1].th = lines[i][-2]
